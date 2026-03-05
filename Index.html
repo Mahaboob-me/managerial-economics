@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Managerial Economics - Complete 120 Question Portal</title>
+    <style>
+        :root {
+            --bg-color: #121212; --card-bg: #1e1e1e; --text-color: #e0e0e0;
+            --primary: #3498db; --secondary: #27ae60; --danger: #e74c3c;
+            --border: #333; --panel-bg: #252525; --hover: #2c2c2c;
+        }
+        [data-theme="light"] {
+            --bg-color: #f8f9fa; --card-bg: #ffffff; --text-color: #2c3e50;
+            --primary: #2980b9; --border: #ddd; --panel-bg: #f1f2f6; --hover: #ecf0f1;
+        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; transition: 0.3s; }
+        header { padding: 1rem 2rem; background: var(--card-bg); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; }
+        main { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 20px; }
+        
+        #quiz-container { flex: 3; background: var(--card-bg); padding: 30px; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.2); overflow-y: auto; position: relative; }
+        .category-tag { font-size: 0.8rem; text-transform: uppercase; color: var(--primary); font-weight: bold; margin-bottom: 10px; letter-spacing: 1px; }
+        .question-text { font-size: 1.25rem; line-height: 1.5; margin-bottom: 25px; }
+        
+        .options-grid { display: grid; gap: 12px; }
+        .option-btn { padding: 15px 20px; border: 2px solid var(--border); border-radius: 8px; background: transparent; color: var(--text-color); text-align: left; cursor: pointer; transition: 0.2s; font-size: 1rem; display: flex; align-items: center; }
+        .option-btn:hover:not(:disabled) { background: var(--hover); border-color: #555; }
+        .option-btn.selected { border-color: var(--primary); background: rgba(52, 152, 219, 0.15); }
+        .option-btn.correct { background: var(--secondary) !important; color: white !important; border-color: var(--secondary) !important; }
+        .option-btn.wrong { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
+        
+        #reason-box { margin-top: 25px; padding: 15px 20px; background: rgba(52, 152, 219, 0.1); border-left: 5px solid var(--primary); border-radius: 4px; display: none; line-height: 1.5; font-size: 0.95rem; }
+        
+        #question-panel { flex: 1; background: var(--panel-bg); padding: 20px; border-radius: 12px; max-width: 320px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .panel-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; overflow-y: auto; padding-right: 5px; flex: 1; align-content: start; }
+        .panel-num { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.9rem; background: var(--card-bg); transition: 0.2s; font-weight: 500; }
+        .panel-num:hover { transform: translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .panel-num.active { border: 2px solid var(--primary); transform: scale(1.1); font-weight: bold; box-shadow: 0 0 10px rgba(52, 152, 219, 0.3); }
+        
+        /* Panel Status Colors */
+        .panel-num.correct-panel { background: var(--secondary); color: white; border-color: var(--secondary); }
+        .panel-num.wrong-panel { background: var(--danger); color: white; border-color: var(--danger); }
+
+        .nav-controls { margin-top: auto; padding-top: 25px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .btn { padding: 12px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.95rem; }
+        .btn:hover { filter: brightness(1.1); }
+        .btn-submit { background: var(--secondary); color: white; flex-grow: 1; }
+        .btn-clear { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+        .btn-clear:hover { background: rgba(231, 76, 60, 0.1); }
+        
+        .term-link { color: var(--primary); text-decoration: underline; cursor: help; position: relative; font-weight: 600; }
+        .tooltip { visibility: hidden; width: 220px; background: #222; color: #fff; text-align: center; border-radius: 6px; padding: 10px; position: absolute; z-index: 100; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: 0.2s; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none; border: 1px solid #444; }
+        .term-link:hover .tooltip { visibility: visible; opacity: 1; }
+        
+        #dashboard { display: none; position: fixed; inset: 0; background: var(--bg-color); padding: 40px 10%; overflow-y: auto; z-index: 2000; }
+        .stat-card { background: var(--panel-bg); padding: 20px; border-radius: 10px; border-left: 5px solid; margin-bottom: 15px; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+    </style>
+</head>
+<body data-theme="dark">
+
+<header>
+    <h2 style="margin:0; color: var(--primary);">ME Quiz Master</h2>
+    <div style="display:flex; gap:30px; align-items:center;">
+        <div style="font-size:1.2rem; font-weight:bold; background: var(--panel-bg); padding: 8px 15px; border-radius: 20px;">Score: <span id="score" style="color:var(--secondary)">0</span></div>
+        <button onclick="toggleTheme()" class="btn" style="background:var(--panel-bg); color:var(--text-color); border: 1px solid var(--border);">🌓 Toggle Mode</button>
+    </div>
+</header>
+
+<main>
+    <div id="quiz-container">
+        <div id="category" class="category-tag"></div>
+        <div id="question" class="question-text"></div>
+        <div id="options" class="options-grid"></div>
+        <div id="reason-box"><strong>Reasoning:</strong> <span id="reason-text"></span></div>
+        
+        <div class="nav-controls">
+            <button class="btn" style="background:#555; color:white;" onclick="move(-1)">◀ Previous</button>
+            <button class="btn btn-clear" id="clear-btn" onclick="clearResp()">Clear Selection</button>
+            <button class="btn btn-submit" id="submit-btn" style="display:none;" onclick="submitAns()">Submit Answer</button>
+            <button class="btn" style="background:var(--primary); color:white;" onclick="move(1)">Next ▶</button>
+            <button class="btn" style="background:var(--danger); color:white; margin-left:auto;" onclick="showResults()">Finish Quiz 🏁</button>
+        </div>
+    </div>
+    
+    <div id="question-panel">
+        <h3 style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Question Navigator</h3>
+        <div class="panel-grid" id="panel-grid"></div>
+        <div style="margin-top:15px; font-size:0.8rem; opacity:0.8; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 6px;">
+            <span style="color:var(--primary)">■</span> Active &nbsp;
+            <span style="color:var(--secondary)">■</span> Correct &nbsp;
+            <span style="color:var(--danger)">■</span> Wrong<br><br>
+            * MSQs require selecting ALL correct answers before submitting.
+        </div>
+    </div>
+</main>
+
+<div id="dashboard">
+    <h1 style="color: var(--primary); margin-bottom: 5px;">Performance Dashboard</h1>
+    <p style="opacity: 0.8; margin-top: 0; margin-bottom: 30px;">Review your weak topics to improve your Managerial Economics proficiency.</p>
+    
+    <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+        <div style="background: var(--card-bg); padding: 30px; border-radius: 12px; border: 2px solid var(--primary); text-align: center; flex: 1;">
+            <h3>Final Score</h3>
+            <div id="final-stats" style="font-size: 3rem; font-weight: bold; color: var(--primary);"></div>
+        </div>
+    </div>
+
+    <h2 style="border-bottom: 2px solid var(--border); padding-bottom: 10px;">Topic Analysis</h2>
+    <div id="weak-areas" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-bottom: 40px;"></div>
+    
+    <button class="btn" style="background:var(--primary); color:white; padding: 15px 30px; font-size: 1.1rem; width: 100%;" onclick="location.reload()">Restart Quiz</button>
+</div>
+
+<script>
+    const glossary = {
+        "GDP": "Gross Domestic Product: The total market value of all final goods and services produced within a country.",
+        "NDP": "Net Domestic Product: GDP minus the depreciation of capital assets.",
+        "Oligopoly": "A market structure with a few dominant firms where mutual interdependence is high.",
+        "Monopoly": "A market structure where a single seller controls the entire supply of a good or service.",
+        "Monopolistic Competition": "Many firms selling differentiated products with relatively free entry and exit.",
+        "Elasticity": "The measure of how responsive quantity demanded or supplied is to a change in price or income.",
+        "Inflation": "A sustained increase in the general price level, eroding purchasing power.",
+        "Deflation": "A sustained decrease in the general price level.",
+        "Stagflation": "An economic anomaly combining stagnant growth, high unemployment, and high inflation.",
+        "Isoquant": "A curve representing all combinations of inputs that yield the exact same level of output.",
+        "Multiplier Effect": "The proportional amount of increase in final income that results from an injection of spending."
+    };
+
+    // --- FULL 120 QUESTION BANK EXTRACTED MANUALLY ---
+    const questions = [
+        // BATCH 1: MCQs
+        { id: 1, type: "MCQ", cat: "Basics of ME", q: "Managerial economics bridges the gap between traditional economic theory and real-world business decision-making. Which of the following best describes its nature?", options: ["It is purely a positive science focused on 'what is.'", "It relies strictly on macroeconomic aggregates.", "It is a normative science focused on prescribing 'what should be' for optimal decision-making.", "It ignores historical data and focuses only on forecasting."], correct: [2], reason: "Managerial economics is prescriptive (normative) rather than purely descriptive (positive), as it helps managers determine the best course of action." },
+        { id: 2, type: "MCQ", cat: "Elasticity", q: "Scenario: TechCorp recently reduced the price of its flagship software by 15%, which led to a 30% increase in quantity demanded. Simultaneously, the demand for their premium technical support service increased by 20%. The software and technical support service are:", options: ["Substitute goods with positive cross-price elasticity", "Complementary goods with negative cross-price elasticity", "Giffen goods with positive income elasticity", "Veblen goods with perfectly inelastic demand"], correct: [1], reason: "A price drop in software led to an increase in demand for support services. This inverse relationship indicates they are complementary goods." },
+        { id: 3, type: "MCQ", cat: "Costs", q: "The cost that involves the value of the next best alternative forgone when a decision is made is known as:", options: ["Sunk Cost", "Historical Cost", "Opportunity Cost", "Implicit Cost"], correct: [2], reason: "Opportunity cost represents the benefits missed out on when choosing one alternative over another." },
+        { id: 4, type: "MCQ", cat: "Elasticity", q: "If the price elasticity of demand for a luxury car is greater than 1 (elastic), a decrease in the car's price will result in:", options: ["A decrease in total revenue", "An increase in total revenue", "No change in total revenue", "A proportional decrease in quantity demanded"], correct: [1], reason: "When demand is elastic, consumers are highly responsive to price changes. A price drop increases total revenue." },
+        { id: 5, type: "MCQ", cat: "Forecasting", q: "A new smartphone company wants to estimate the demand for a radically new foldable device that has no historical sales data. Which demand forecasting method is most appropriate?", options: ["Trend Projection Method", "Moving Average Method", "Delphi Method / Expert Opinion", "Time Series Analysis"], correct: [2], reason: "Statistical methods require historical data. For new products, qualitative methods like Delphi or expert opinion are necessary." },
+        { id: 6, type: "MCQ", cat: "Demand", q: "If a consumer's income increases by 10% and their consumption of 'Brand X Instant Noodles' decreases by 5%, what type of good is Brand X?", options: ["Luxury Good", "Necessity Good", "Inferior Good", "Normal Good"], correct: [2], reason: "Inferior goods have a negative income elasticity. As income rises, consumers substitute them for higher-quality alternatives." },
+        { id: 7, type: "MCQ", cat: "Production", q: "In the short run, the Law of Variable Proportions states that as more units of a variable input are added to fixed inputs:", options: ["Total production will immediately decrease.", "Marginal product will eventually decline.", "Average fixed cost will increase.", "Returns to scale will remain constant."], correct: [1], reason: "Adding more labor to a fixed factory size eventually leads to overcrowding, causing marginal product to fall." },
+        { id: 8, type: "MCQ", cat: "Costs", q: "Which of the following curves is typically U-shaped in production cost theory?", options: ["Average Fixed Cost (AFC)", "Total Fixed Cost (TFC)", "Average Total Cost (ATC)", "Total Variable Cost (TVC)"], correct: [2], reason: "ATC is U-shaped because it initially falls as fixed costs spread over units, but eventually rises due to diminishing marginal returns." },
+        { id: 9, type: "MCQ", cat: "Costs", q: "Sunk costs are defined as:", options: ["Costs that change with output.", "Costs already incurred and cannot be recovered.", "The opportunity cost of capital.", "Future costs that can be avoided."], correct: [1], reason: "Sunk costs are past expenses that cannot be refunded. Rational economic decisions should ignore them." },
+        { id: 10, type: "MCQ", cat: "Production", q: "The expansion path in production theory illustrates:", options: ["Profit-maximizing output for different prices.", "The cheapest combination of inputs to produce various levels of output in the long run.", "Diminishing marginal utility.", "Inflation and unemployment relationship."], correct: [1], reason: "The expansion path connects tangency points between isocost lines and isoquants, showing least-cost input combinations." },
+        { id: 11, type: "MCQ", cat: "Market Structures", q: "Scenario: 50 small cafes selling nearly identical coffee. No barriers to entry. If one cafe raises price by 10%, it loses almost all customers. Market structure:", options: ["Oligopoly", "Monopoly", "Perfect Competition", "Monopolistic Competition"], correct: [2], reason: "Many sellers, homogeneous products, no barriers, and being pure 'price takers' define perfect competition." },
+        { id: 12, type: "MCQ", cat: "Oligopoly", q: "The 'Kinked Demand Curve' explains price rigidity in which market structure?", options: ["Perfect Competition", "Monopolistic Competition", "Oligopoly", "Monopsony"], correct: [2], reason: "Oligopolies assume competitors match price cuts but ignore increases, leading to price stability." },
+        { id: 13, type: "MCQ", cat: "Pricing Policies", q: "A movie theater charges $15 for adults and $10 for students. This is an example of:", options: ["First-degree price discrimination", "Second-degree price discrimination", "Third-degree price discrimination", "Penetration pricing"], correct: [2], reason: "Third-degree price discrimination segments the market based on observable attributes like student status." },
+        { id: 14, type: "MCQ", cat: "Market Structures", q: "In Monopolistic Competition, the long-run economic profit tends toward zero because:", options: ["Products are perfectly homogeneous.", "Firms operate at minimum average cost.", "There are high barriers to entry.", "Free entry and exit attract new competitors if short-run profits exist."], correct: [3], reason: "Profit attracts new entrants, increasing supply and driving prices down until economic profit reaches zero." },
+        { id: 15, type: "MCQ", cat: "Market Structures", q: "The universal rule for profit maximization across all market structures is:", options: ["Price = Average Total Cost", "Marginal Revenue = Marginal Cost", "Total Revenue = Total Cost", "Price = Marginal Revenue"], correct: [1], reason: "Profit is maximized when the extra revenue from one more unit equals the extra cost of producing it (MR = MC)." },
+        { id: 16, type: "MCQ", cat: "Macroeconomics", q: "Which transaction is INCLUDED in the calculation of Gross Domestic Product (GDP)?", options: ["Purchase of a used 2018 Toyota Camry.", "Value of volunteer work.", "Purchase of newly manufactured microchips by Dell as intermediate goods.", "Sale of a newly built house completed in the current year."], correct: [3], reason: "GDP only counts final goods and services produced within the year. Used goods and intermediate materials are excluded." },
+        { id: 17, type: "MCQ", cat: "Macroeconomics", q: "Real GDP differs from Nominal GDP in that Real GDP:", options: ["Includes underground economy.", "Adjusts for changes in the price level (inflation).", "Excludes government spending.", "Only measures physical goods."], correct: [1], reason: "Real GDP uses base-year prices to factor out inflation, providing a true measure of economic growth." },
+        { id: 18, type: "MCQ", cat: "Macroeconomics", q: "According to Keynes's psychological law of consumption:", options: ["Consumption increases by a smaller amount than the increase in income.", "Consumption increases by an amount greater than income.", "Consumption remains constant.", "Savings decrease as income rises."], correct: [0], reason: "Keynes theorized the Marginal Propensity to Consume (MPC) is less than 1. People spend a portion of new income and save the rest." },
+        { id: 19, type: "MCQ", cat: "Macroeconomics", q: "Government injects $100M into infrastructure. Construction workers spend at restaurants, expanding total income by $400M. This is:", options: ["Accelerator Principle", "Multiplier Effect", "Crowding-Out Effect", "Demand-Pull Inflation"], correct: [1], reason: "The Multiplier Effect explains how an initial injection of spending leads to a much larger overall increase in national income." },
+        { id: 20, type: "MCQ", cat: "Inflation", q: "What type of inflation is triggered by a sudden increase in the cost of raw materials (e.g., oil shock)?", options: ["Demand-Pull Inflation", "Cost-Push Inflation", "Hyperinflation", "Built-in Inflation"], correct: [1], reason: "Cost-push inflation occurs when production costs rise, forcing prices up regardless of consumer demand." },
+        { id: 21, type: "MCQ", cat: "Business Cycles", q: "The phase of the business cycle characterized by declining real GDP and rising unemployment is:", options: ["Peak", "Trough", "Expansion", "Recession"], correct: [3], reason: "A recession is a period of temporary economic decline where trade and industrial activity are reduced." },
+        { id: 22, type: "MCQ", cat: "Macroeconomics", q: "Frictional unemployment occurs when:", options: ["Machines replace workers", "The economy is in a recession", "Workers are temporarily between jobs", "Workers lack required skills"], correct: [2], reason: "Frictional unemployment is the natural, short-term unemployment while people search for jobs." },
+        { id: 23, type: "MCQ", cat: "Welfare Economics", q: "Deadweight loss is primarily a measure of:", options: ["Market efficiency", "Market inefficiency", "Total revenue", "Consumer surplus"], correct: [1], reason: "Deadweight loss is the loss of economic efficiency occurring when free market equilibrium is not achieved." },
+        { id: 24, type: "MCQ", cat: "Business Cycles", q: "Which of the following is considered a 'Leading Indicator' of the business cycle?", options: ["Unemployment duration", "Corporate profits", "Stock market indices", "Consumer Price Index"], correct: [2], reason: "Stock markets reflect future expectations of earnings, making them a leading indicator of economic shifts." },
+        { id: 25, type: "MCQ", cat: "Market Structures", q: "In perfect competition, the firm's demand curve is:", options: ["Downward sloping", "Perfectly inelastic", "Perfectly elastic", "U-shaped"], correct: [2], reason: "A perfectly competitive firm is a price taker; it can sell all it wants at the market price, making its demand curve perfectly elastic." },
+        { id: 26, type: "MCQ", cat: "Macroeconomics", q: "Net Factor Income from Abroad (NFIA) is used to calculate the difference between:", options: ["Nominal and Real GDP", "GDP and GNP", "Inflation and Deflation", "Exports and Imports"], correct: [1], reason: "Gross National Product (GNP) = Gross Domestic Product (GDP) + NFIA." },
+        { id: 27, type: "MCQ", cat: "Market Structures", q: "A natural monopoly exists primarily because of:", options: ["Government patents", "Control over raw materials", "Massive economies of scale", "Aggressive advertising"], correct: [2], reason: "A natural monopoly occurs when fixed costs are so high that one firm can supply the market cheaper than multiple firms." },
+        { id: 28, type: "MCQ", cat: "Inflation", q: "Deflation is defined as:", options: ["A decrease in the rate of inflation", "A sustained decrease in the general price level", "High unemployment", "A drop in GDP"], correct: [1], reason: "Deflation is a negative inflation rate, meaning money gains purchasing power over time." },
+        { id: 29, type: "MCQ", cat: "Macroeconomics", q: "The GDP deflator measures:", options: ["Economic growth", "Unemployment", "The overall price level (Inflation)", "Interest rates"], correct: [2], reason: "The GDP deflator compares Nominal GDP to Real GDP to measure changes in the price level over time." },
+        { id: 30, type: "MCQ", cat: "Macroeconomics", q: "Structural unemployment is caused by:", options: ["Economic recessions", "People voluntarily quitting", "A mismatch between workers' skills and job requirements", "Seasonal industry changes"], correct: [2], reason: "Structural unemployment happens when industries change (like automation) and workers lack the new skills required." },
+        { id: 31, type: "MCQ", cat: "Production", q: "The Marginal Rate of Technical Substitution (MRTS) represents the slope of an:", options: ["Isoquant", "Isocost line", "Demand curve", "Indifference curve"], correct: [0], reason: "MRTS shows the rate at which one input can be substituted for another while keeping output constant on an isoquant." },
+        { id: 32, type: "MCQ", cat: "Costs", q: "Economies of scale occur when:", options: ["Total fixed costs increase", "Long-run average total cost decreases as output increases", "Short-run marginal cost increases", "Output doubles when inputs are tripled"], correct: [1], reason: "Scaling up production makes each unit cheaper to produce on average in the long run." },
+        { id: 33, type: "MCQ", cat: "Macroeconomics", q: "Which policy is considered Contractionary Fiscal Policy?", options: ["Decreasing taxes", "Increasing government spending", "Decreasing government spending and raising taxes", "Lowering interest rates"], correct: [2], reason: "Contractionary policy aims to cool down an overheating economy by reducing aggregate demand through spending cuts or tax hikes." },
+        { id: 34, type: "MCQ", cat: "Macroeconomics", q: "Stagflation is defined as:", options: ["High growth, high inflation", "High unemployment, high inflation", "Deflation and high growth", "Zero inflation"], correct: [1], reason: "Stagflation occurs when the economy stagnates (high unemployment) but prices still rise (inflation)." },
+        { id: 35, type: "MCQ", cat: "Production", q: "If doubling all inputs more than doubles total output, the firm is experiencing:", options: ["Increasing returns to scale", "Decreasing returns to scale", "Constant returns to scale", "Diminishing marginal returns"], correct: [0], reason: "Increasing returns to scale means output grows proportionally faster than inputs." },
+        { id: 36, type: "MCQ", cat: "Inflation", q: "The 'shoe-leather cost' of inflation refers to:", options: ["Cost of printing new money", "Time and effort wasted trying to minimize cash holdings", "Cost to businesses of changing prices", "Increase in price of raw materials"], correct: [1], reason: "Shoe-leather costs refer to the metaphorical wear on shoes from making trips to the bank to avoid holding depreciating cash." },
+        { id: 37, type: "MCQ", cat: "Inflation", q: "Menu costs are:", options: ["Costs of dining out", "Costs to firms of updating prices and catalogs", "Opportunity cost of capital", "Cost of imported goods"], correct: [1], reason: "Menu costs refer to the logistical costs a business incurs to change advertised prices during inflation." },
+        { id: 38, type: "MCQ", cat: "Markets", q: "A price ceiling set below the equilibrium price will cause:", options: ["A surplus", "A shortage", "Market equilibrium", "Rightward shift in demand"], correct: [1], reason: "A price ceiling prevents price from rising to equilibrium, resulting in quantity demanded exceeding quantity supplied." },
+        { id: 39, type: "MCQ", cat: "Oligopoly", q: "The Cournot model is used to analyze which type of market?", options: ["Monopoly", "Perfect Competition", "Oligopoly", "Monopsony"], correct: [2], reason: "The Cournot model describes an oligopoly where firms compete on the amount of output they produce." },
+        { id: 40, type: "MCQ", cat: "Elasticity", q: "A perfectly inelastic demand curve is:", options: ["Horizontal", "Vertical", "Upward sloping", "U-shaped"], correct: [1], reason: "Vertical means quantity demanded does not change regardless of price changes." },
+        
+        // BATCH 1: MSQs
+        { id: 41, type: "MSQ", cat: "Pricing Policies", q: "An airline knows business travelers have inelastic demand, vacationers elastic. Which strategies align to maximize revenue? (Select all)", options: ["Increase prices for last-minute business travelers.", "Offer discounts for vacationers booking in advance.", "Increase prices for vacationers.", "Keep prices uniform."], correct: [0, 1], reason: "Raise prices when demand is inelastic; lower them when elastic to maximize total revenue." },
+        { id: 42, type: "MSQ", cat: "Costs", q: "Which of the following costs are considered 'Implicit Costs'? (Select all)", options: ["Monthly lease payment.", "Salary entrepreneur gave up by quitting their job.", "Wages to factory workers.", "Interest income forfeited by investing savings into business."], correct: [1, 3], reason: "Implicit costs are opportunity costs representing forgone income from resources already owned." },
+        { id: 43, type: "MSQ", cat: "Oligopoly", q: "Core characteristics of an Oligopolistic market: (Select all)", options: ["Large number of small firms.", "Mutual interdependence among firms.", "High barriers to entry.", "Firms are pure price takers."], correct: [1, 2], reason: "Oligopolies are few dominant firms protected by high barriers, making them mutually interdependent." },
+        { id: 44, type: "MSQ", cat: "Macroeconomics", q: "Factors causing a rightward shift in Aggregate Demand (AD): (Select all)", options: ["Significant increase in consumer confidence.", "Central bank raising interest rates.", "Increase in government spending.", "Decrease in exports."], correct: [0, 2], reason: "AD = C + I + G + (X - M). Higher confidence increases C; higher government spending increases G." },
+        { id: 45, type: "MSQ", cat: "Business Cycles", q: "During 'Expansion', an economy generally experiences: (Select all)", options: ["Rising Real GDP.", "Increasing cyclical unemployment.", "Increased business investment.", "Downward pressure on wages."], correct: [0, 2], reason: "Expansions feature rising GDP, rising investment, and falling unemployment." },
+        { id: 46, type: "MSQ", cat: "Inflation", q: "Groups HURT by unexpectedly high inflation: (Select all)", options: ["Retirees on fixed pensions.", "Homeowners with fixed-rate mortgages.", "Banks with fixed-rate loans.", "Workers with CPI-tied wages."], correct: [0, 2], reason: "Inflation hurts fixed-income earners and lenders who get paid back in depreciated money." },
+        { id: 47, type: "MSQ", cat: "Macroeconomics", q: "The Accelerator Principle suggests: (Select all)", options: ["Investment solely determined by interest rates.", "Induced investment is responsive to changes in national income.", "Small demand increase can trigger massive capital investment.", "Government spending crowds out private investment."], correct: [1, 2], reason: "Accelerator effect shows investment depends on the rate of change in output/demand." },
+        { id: 48, type: "MSQ", cat: "Costs", q: "Firm experiencing long-run 'Economies of Scale' observes: (Select all)", options: ["Fixed costs remaining zero.", "Long-run ATC decreasing as output increases.", "Advantages from bulk purchasing and specialized management.", "Vertical marginal cost curve."], correct: [1, 2], reason: "Economies of scale lower per-unit costs via bulk buying and operational efficiencies." },
+        { id: 49, type: "MSQ", cat: "Macroeconomics", q: "Macroeconomic 'Leakages' from circular flow: (Select all)", options: ["Savings by households.", "Investment by businesses.", "Taxes paid to government.", "Export revenue."], correct: [0, 2], reason: "Savings, Taxes, and Imports remove money from the domestic consumption cycle." },
+        { id: 50, type: "MSQ", cat: "Macroeconomics", q: "In calculating National Income, the 'Value Added' method: (Select all)", options: ["Measures sales at every stage without deductions.", "Subtracts cost of intermediate goods at each stage.", "Avoids double counting.", "Only looks at underground economy."], correct: [1, 2], reason: "Deducting intermediate goods prevents artificially inflating GDP via double counting." },
+        { id: 51, type: "MSQ", cat: "Demand", q: "Which factors shift demand curve to the right? (Select all)", options: ["Increase in income (Normal Good).", "Decrease in price of substitute.", "Increase in price of complement.", "Successful advertising campaign."], correct: [0, 3], reason: "More income and good advertising boost demand. Cheaper substitutes pull demand away." },
+        { id: 52, type: "MSQ", cat: "Costs", q: "Fixed costs in the short run: (Select all)", options: ["Direct labor wages.", "Factory lease payments.", "Raw materials.", "Insurance premiums."], correct: [1, 3], reason: "Leases and insurance must be paid regardless of production volume." },
+        { id: 53, type: "MSQ", cat: "Monopoly", q: "Characteristics of a Monopoly: (Select all)", options: ["Single seller.", "Homogeneous products.", "Price taker.", "High barriers to entry."], correct: [0, 3], reason: "Monopolies are single sellers protected by high barriers to entry." },
+        { id: 54, type: "MSQ", cat: "Macroeconomics", q: "Components of GDP (Expenditure Approach): (Select all)", options: ["Consumption.", "Taxes.", "Investment.", "Net Exports."], correct: [0, 2, 3], reason: "GDP = C + I + G + (X - M). Taxes are not in the expenditure equation." },
+        { id: 55, type: "MSQ", cat: "Inflation", q: "Causes of Demand-Pull Inflation: (Select all)", options: ["Sudden increase in oil prices.", "Excessive money supply growth.", "Boom in consumer spending.", "Increase in government spending."], correct: [1, 2, 3], reason: "Demand-pull happens when 'too much money chases too few goods'. Oil is cost-push." },
+        { id: 56, type: "MSQ", cat: "Business Cycles", q: "Considered 'Lagging Indicators': (Select all)", options: ["Stock market indices.", "Average duration of unemployment.", "Corporate profits.", "Building permits issued."], correct: [1, 2], reason: "Lagging indicators change after the economy has already shifted (unemployment duration, profits)." },
+        { id: 57, type: "MSQ", cat: "Elasticity", q: "If two goods are Complements: (Select all)", options: ["Cross-price elasticity is negative.", "Cross-price elasticity is positive.", "An increase in price of one lowers demand for the other.", "They are used together."], correct: [0, 2, 3], reason: "Complements are bought together, creating a negative cross-price elasticity." },
+        { id: 58, type: "MSQ", cat: "Market Structures", q: "Examples of Non-Price Competition: (Select all)", options: ["Discounting price by 10%.", "Extensive advertising.", "Offering superior warranty.", "Enhancing product design."], correct: [1, 2, 3], reason: "Non-price competition relies on marketing, quality, and service, not price cuts." },
+        { id: 59, type: "MSQ", cat: "Macroeconomics", q: "Types of unemployment in 'Natural Unemployment': (Select all)", options: ["Cyclical Unemployment.", "Frictional Unemployment.", "Structural Unemployment.", "Recessionary Unemployment."], correct: [1, 2], reason: "Natural unemployment consists only of Frictional and Structural." },
+        { id: 60, type: "MSQ", cat: "Market Structures", q: "Firms in Monopolistic Competition in Long Run: (Select all)", options: ["Earn zero economic profit.", "Produce at minimum ATC.", "Charge price greater than Marginal Cost.", "Earn massive profits."], correct: [0, 2], reason: "Free entry zeroes out profits, but differentiated products allow pricing above MC." },
+
+        // BATCH 2: MCQs
+        { id: 61, type: "MCQ", cat: "Forecasting", q: "Which approach estimates demand by analyzing the new product as an outgrowth of an existing product?", options: ["Opinion Poll Approach", "Growth Curve Approach", "Evolutionary Approach", "Vicarious Approach"], correct: [2], reason: "Evolutionary approach considers new products as outgrowths of existing ones." },
+        { id: 62, type: "MCQ", cat: "Macroeconomics", q: "In macroeconomics, a variable measured at a specific point in time is a:", options: ["Flow Variable", "Ratio Variable", "Stock Variable", "Constant Variable"], correct: [2], reason: "A stock variable (wealth, money supply) is measured at a specific point in time." },
+        { id: 63, type: "MCQ", cat: "Macroeconomics", q: "Investment Multiplier (k) if Marginal Propensity to Consume (MPC) is 0.8?", options: ["2", "4", "5", "10"], correct: [2], reason: "k = 1 / (1 - MPC). 1 / 0.2 = 5." },
+        { id: 64, type: "MCQ", cat: "Pricing Policies", q: "Type of price leadership where a firm with good forecasting sets prices, and others follow?", options: ["Dominant Firm", "Barometric", "Aggressive", "Collusive"], correct: [1], reason: "Barometric leadership occurs when others follow a firm's 'barometer' reading of the market." },
+        { id: 65, type: "MCQ", cat: "Pricing Policies", q: "Charging every consumer their exact absolute maximum willingness to pay is:", options: ["First-degree price discrimination", "Second-degree price discrimination", "Third-degree price discrimination", "Peak-load pricing"], correct: [0], reason: "First-degree discrimination extracts the entire consumer surplus." },
+        { id: 66, type: "MCQ", cat: "Macroeconomics", q: "Relationship between Average Propensity to Consume (APC) and Save (APS)?", options: ["APC + APS = 0", "APC - APS = 1", "APC + APS = 1", "APC / APS = 1"], correct: [2], reason: "Income is either consumed or saved, so proportions must sum to 1." },
+        { id: 67, type: "MCQ", cat: "Demand", q: "Consumers demanding more luxury goods because high price acts as a status symbol:", options: ["Substitution Effect", "Giffen Paradox", "Veblen Effect", "Bandwagon Effect"], correct: [2], reason: "The Veblen effect describes conspicuous consumption for status." },
+        { id: 68, type: "MCQ", cat: "Production", q: "When Marginal Product of Labor (MPL) is zero, Total Product (TP) is:", options: ["Zero", "Increasing at a decreasing rate", "At its absolute maximum", "Declining"], correct: [2], reason: "When marginal addition is zero, total accumulation has reached its peak." },
+        { id: 69, type: "MCQ", cat: "Costs", q: "The Long-Run Average Cost (LRAC) curve is often referred to as the:", options: ["Envelope Curve", "Kinked Curve", "Phillips Curve", "Expansion Path"], correct: [0], reason: "It 'envelopes' the minimum points of short-run average cost curves." },
+        { id: 70, type: "MCQ", cat: "Macroeconomics", q: "Investment driven strictly by changes in income/demand (Accelerator Principle):", options: ["Autonomous", "Induced", "Public", "Replacement"], correct: [1], reason: "Induced investment responds directly to changes in demand or profitability." },
+        { id: 71, type: "MCQ", cat: "Macroeconomics", q: "Curve showing short-run trade-off between inflation and unemployment:", options: ["Laffer Curve", "Lorenz Curve", "Phillips Curve", "Yield Curve"], correct: [2], reason: "The Phillips Curve represents the inverse relationship between inflation and unemployment." },
+        { id: 72, type: "MCQ", cat: "Inflation", q: "Persistently falling prices leading to delayed spending and debt burden is:", options: ["Disinflation", "Deflationary Spiral", "Stagflation", "Recessionary Gap"], correct: [1], reason: "Deflation causes delayed spending, leading to job cuts and further demand drops." },
+        { id: 73, type: "MCQ", cat: "Macroeconomics", q: "Central bank policy tool to control high inflation:", options: ["Lowering CRR", "Buying government securities", "Increasing Repo Rate", "Decreasing taxes"], correct: [2], reason: "Increasing the repo rate makes borrowing expensive, cooling down demand and inflation." },
+        { id: 74, type: "MCQ", cat: "Market Structures", q: "In perfect competition in the long run, firms operate where:", options: ["P = MC > ATC", "P = MR = Minimum ATC", "P > MC", "TR is maximized"], correct: [1], reason: "Free entry forces firms to normal profits at the lowest point on the ATC curve." },
+        { id: 75, type: "MCQ", cat: "Costs", q: "Marginal cost curve intersects ATC and AVC curves at their:", options: ["Maximum points", "Minimum points", "Inflection points", "Y-intercepts"], correct: [1], reason: "Once marginal cost exceeds average cost, it pulls the average up, intersecting at the minimum." },
+        { id: 76, type: "MCQ", cat: "Market Structures", q: "Perfectly competitive firm's short-run supply curve is the MC curve above the:", options: ["AFC", "AVC", "ATC", "MR"], correct: [1], reason: "A firm shuts down if price falls below Average Variable Cost." },
+        { id: 77, type: "MCQ", cat: "Macroeconomics", q: "Example of a Flow Variable?", options: ["National Wealth", "Foreign Exchange Reserves", "National Income over a financial year", "Total capital stock"], correct: [2], reason: "Flow variables are measured over a period of time, like yearly income." },
+        { id: 78, type: "MCQ", cat: "Welfare Economics", q: "Consumer surplus is graphically represented as the area:", options: ["Below demand and above market price.", "Above supply and below price.", "Between MR and MC.", "Below price and above x-axis."], correct: [0], reason: "It's the difference between willingness to pay (demand curve) and actual payment (price line)." },
+        { id: 79, type: "MCQ", cat: "Macroeconomics", q: "Under Expenditure Method, 'Gross Private Domestic Investment' includes:", options: ["Stocks and bonds.", "Government spending.", "Business spending on capital equipment and inventory.", "Consumer durable goods."], correct: [2], reason: "Investment refers to physical capital creation, not financial transactions." },
+        { id: 80, type: "MCQ", cat: "Demand", q: "Exception to the Law of Demand:", options: ["Normal Goods", "Giffen Goods", "Substitute Goods", "Complementary Goods"], correct: [1], reason: "A price increase in a Giffen good forces impoverished consumers to buy even more of it." },
+        { id: 81, type: "MCQ", cat: "Macroeconomics", q: "Difference between GDP and Net Domestic Product (NDP) is:", options: ["NFIA", "Indirect Taxes", "Subsidies", "Depreciation"], correct: [3], reason: "NDP = GDP - Depreciation of capital stock." },
+        { id: 82, type: "MCQ", cat: "Oligopoly", q: "Oligopoly firms formally agreeing to fix prices/output:", options: ["Cartel", "Barometric", "Non-collusive", "Monopolistic competition"], correct: [0], reason: "A cartel (like OPEC) is a formal agreement to fix prices." },
+        { id: 83, type: "MCQ", cat: "Production", q: "An isoquant curve shows:", options: ["Consumer combinations.", "All combinations of two inputs producing same output.", "Max output for budget.", "Price and quantity supplied."], correct: [1], reason: "Isoquant (equal quantity) maps labor and capital combos for a specific output." },
+        { id: 84, type: "MCQ", cat: "Monopoly", q: "Characteristic of pure monopoly?", options: ["Close substitutes.", "Price taker.", "Perfectly elastic demand.", "Insurmountable barriers to entry."], correct: [3], reason: "True monopoly relies on barriers preventing any competition." },
+        { id: 85, type: "MCQ", cat: "Inflation", q: "'Creeping inflation' is generally considered:", options: ["Highly destructive.", "Sign of depression.", "Normal and mildly beneficial for growth.", "Same as hyperinflation."], correct: [2], reason: "Mild inflation (2-3%) encourages investment over hoarding cash." },
+        { id: 86, type: "MCQ", cat: "Market Structures", q: "Shape of a perfectly competitive firm's MR curve:", options: ["Downward sloping", "Upward sloping", "Horizontal and equal to price", "U-shaped"], correct: [2], reason: "A competitive firm sells at constant market price, so MR equals price." },
+        { id: 87, type: "MCQ", cat: "Supply", q: "Decrease in price of a good, ceteris paribus, leads to:", options: ["Leftward supply shift", "Rightward supply shift", "Increase in quantity supplied", "Decrease in quantity supplied"], correct: [3], reason: "Price changes cause movement along the curve (change in quantity supplied), not shifts." },
+        { id: 88, type: "MCQ", cat: "Elasticity", q: "Income Elasticity positive but less than 1:", options: ["Inferior", "Luxury", "Normal necessity", "Giffen"], correct: [2], reason: "Necessities see demand rise with income, but proportionately less than the income jump." },
+        { id: 89, type: "MCQ", cat: "Forecasting", q: "Statistical method fitting a line to historical data:", options: ["Delphi", "Trend Projection (Least Squares)", "End-use", "Consumer Clinic"], correct: [1], reason: "Trend projection uses historical time-series data to project the future." },
+        { id: 90, type: "MCQ", cat: "Macroeconomics", q: "Autonomous investment graphed as:", options: ["Upward sloping", "Downward sloping", "Horizontal line", "Vertical line"], correct: [2], reason: "Constant across all income levels, forming a horizontal line." },
+        { id: 91, type: "MCQ", cat: "Business Cycles", q: "Peak of business cycle is immediately followed by:", options: ["Expansion", "Contraction (Recession)", "Trough", "Recovery"], correct: [1], reason: "The peak inevitably gives way to contraction/recession." },
+        { id: 92, type: "MCQ", cat: "Costs", q: "Internal Economy of Scale example:", options: ["Gov highway.", "Firm installing specialized robot.", "University training.", "Global material drop."], correct: [1], reason: "Internal economies arise from the firm's own decisions and tech investments." },
+        { id: 93, type: "MCQ", cat: "Macroeconomics", q: "Policy stimulating economy by decreasing taxes and increasing spending:", options: ["Expansionary Monetary", "Contractionary Fiscal", "Expansionary Fiscal", "Supply-side"], correct: [2], reason: "Fiscal policy involves tax/spending; expansionary puts money in consumers' hands." },
+        { id: 94, type: "MCQ", cat: "Market Structures", q: "Selling costs (advertising) are most crucial in:", options: ["Perfect Competition", "Pure Monopoly", "Monopolistic Competition", "Bilateral Monopoly"], correct: [2], reason: "To sell differentiated products, firms must heavily advertise to show uniqueness." },
+        { id: 95, type: "MCQ", cat: "Elasticity", q: "20% price increase leads to 5% supply decrease. Supply is:", options: ["Highly Elastic", "Inelastic", "Perfectly Elastic", "Unitary Elastic"], correct: [1], reason: "5/20 = 0.25. Since it's less than 1, it's inelastic." },
+        { id: 96, type: "MCQ", cat: "Inflation", q: "CPI flaw overstating inflation:", options: ["Multiplier Bias", "Substitution Bias", "Output Bias", "Exchange Rate Bias"], correct: [1], reason: "CPI uses fixed basket; if beef is costly, people buy chicken. CPI misses this substitution." },
+        { id: 97, type: "MCQ", cat: "Pricing Policies", q: "Price Leadership by dominant firm found in:", options: ["Monopolies", "Oligopolies", "Monopsonies", "Perfectly Competitive"], correct: [1], reason: "In oligopolies, smaller firms tacitly match the prices of the dominant firm." },
+        { id: 98, type: "MCQ", cat: "Costs", q: "Revenue minus explicit and implicit costs:", options: ["Accounting Profit", "Economic Profit", "Gross Margin", "Operating Profit"], correct: [1], reason: "Economic profit deducts both out-of-pocket and opportunity costs." },
+        { id: 99, type: "MCQ", cat: "Inflation", q: "During deflation, real interest rates:", options: ["Decrease", "Become negative", "Increase significantly", "Remain unchanged"], correct: [2], reason: "Real = Nominal - Inflation. If inflation is negative, the real burden surges." },
+        { id: 100, type: "MCQ", cat: "Production", q: "Slope of isocost line determined by:", options: ["Output desired", "Marginal product", "Ratio of prices of two inputs", "Elasticity"], correct: [2], reason: "Slope is the negative ratio of input prices (-w/r)." },
+
+        // BATCH 2: MSQs
+        { id: 101, type: "MSQ", cat: "Production", q: "Properties of Isoquants: (Select all)", options: ["Slope downwards left to right.", "Can intersect.", "Convex to origin.", "Higher isoquants = higher output."], correct: [0, 2, 3], reason: "Isoquants slope down, are convex, and higher curves mean more output. They cannot intersect." },
+        { id: 102, type: "MSQ", cat: "Macroeconomics", q: "Stock Variables: (Select all)", options: ["Total money supply Dec 31st.", "National debt.", "GDP.", "Volume of exports."], correct: [0, 1], reason: "Stock variables are measured at a specific point in time. GDP/exports are flows over time." },
+        { id: 103, type: "MSQ", cat: "Welfare Economics", q: "Characteristics of a Public Good: (Select all)", options: ["Non-rivalry.", "Non-excludability.", "High marginal cost per user.", "Strict property rights."], correct: [0, 1], reason: "Public goods (like national defense) are non-rival and non-excludable." },
+        { id: 104, type: "MSQ", cat: "Forecasting", q: "Methods for forecasting entirely NEW products: (Select all)", options: ["Evolutionary Approach.", "Trend Projection.", "Opinion Poll / Consumer Clinics.", "Moving Average."], correct: [0, 2], reason: "New products lack historical data, requiring qualitative or proxy methods." },
+        { id: 105, type: "MSQ", cat: "Elasticity", q: "Determinants making Price Elasticity of Supply highly ELASTIC: (Select all)", options: ["Long time horizon.", "Perishable goods.", "Spare production capacity.", "Complex manufacturing."], correct: [0, 2], reason: "Time and spare capacity allow easy ramping up of supply, making it elastic." },
+        { id: 106, type: "MSQ", cat: "Macroeconomics", q: "Objective factors in Keynesian Consumption Function: (Select all)", options: ["Distribution of wealth/income.", "Psychological desires.", "Changes in wage level.", "Fiscal policy / tax rates."], correct: [0, 2, 3], reason: "Objective factors are measurable economic realities, not subjective psychological desires." },
+        { id: 107, type: "MSQ", cat: "Macroeconomics", q: "Tools of Expansionary Monetary Policy: (Select all)", options: ["Lowering CRR.", "Buying government bonds.", "Increasing government spending.", "Decreasing Repo Rate."], correct: [0, 1, 3], reason: "Monetary policy controls money supply. Government spending is fiscal policy." },
+        { id: 108, type: "MSQ", cat: "Production", q: "Assumptions of Law of Variable Proportions: (Select all)", options: ["Technology constant.", "All factors variable.", "At least one factor fixed.", "Units of variable factor are homogeneous."], correct: [0, 2, 3], reason: "A short-run law assuming fixed technology/land and equally skilled labor." },
+        { id: 109, type: "MSQ", cat: "Elasticity", q: "Relationship between MR and Price Elasticity: (Select all)", options: ["Elastic (Ed > 1), MR positive.", "Inelastic (Ed < 1), MR negative.", "Unitary (Ed = 1), MR zero.", "Independent."], correct: [0, 1, 2], reason: "MR = P(1 - 1/Ed). Elastic demand yields positive MR." },
+        { id: 110, type: "MSQ", cat: "Macroeconomics", q: "Events causing Stagflation: (Select all)", options: ["Massive negative supply shock (oil).", "Aggressive government spending.", "Rapid increase in raw material cost.", "Technological boom."], correct: [0, 2], reason: "Stagflation is caused by negative supply shocks crippling production and raising prices." },
+        { id: 111, type: "MSQ", cat: "Pricing Policies", q: "Conditions for Price Discrimination: (Select all)", options: ["Monopoly power.", "Segment market.", "Different elasticities.", "Allow free resale."], correct: [0, 1, 2], reason: "Must have market power, identify segments, and strictly prevent resale (arbitrage)." },
+        { id: 112, type: "MSQ", cat: "Demand", q: "Giffen Good characteristics: (Select all)", options: ["Highly inferior.", "Income effect negative & outweighs substitution.", "Demand decreases when price decreases.", "Luxury status item."], correct: [0, 1, 2], reason: "Giffen goods break demand law. Price drops raise real income so much that people buy better food." },
+        { id: 113, type: "MSQ", cat: "Costs", q: "External Economies of Scale arise from: (Select all)", options: ["Localized pool of skilled labor.", "Firm upgrading own software.", "Specialized ancillary industries nearby.", "Improvements in regional transport."], correct: [0, 2, 3], reason: "External economies occur outside the firm but within the industry/region." },
+        { id: 114, type: "MSQ", cat: "Macroeconomics", q: "Correct National Income formulas: (Select all)", options: ["GNP = GDP + NFIA", "NDP = GDP - Depreciation", "National Income = NNP at Factor Cost", "GDP = C + I + G"], correct: [0, 1, 2], reason: "D is missing Net Exports (X-M)." },
+        { id: 115, type: "MSQ", cat: "Inflation", q: "Consequences of severe Deflation: (Select all)", options: ["Real value of debt increases.", "Consumers delay purchases.", "Surging profit margins.", "Unemployment rises."], correct: [0, 1, 3], reason: "Deflation kills profit margins, causes layoffs, and makes fixed debt harder to pay." },
+        { id: 116, type: "MSQ", cat: "Market Structures", q: "Distinguishing Monopolistic Competition from Oligopoly: (Select all)", options: ["MC has much larger number of firms.", "MC has relatively free entry.", "Oligopolies feature mutual interdependence.", "Oligopolies always sell perfectly homogeneous goods."], correct: [0, 1, 2], reason: "Oligopolies can sell either homogeneous or differentiated goods." },
+        { id: 117, type: "MSQ", cat: "Macroeconomics", q: "GDP Income Method components: (Select all)", options: ["Wages and Salaries.", "Corporate Profits.", "Rent and Interest.", "Net Exports."], correct: [0, 1, 2], reason: "Net Exports belong to the Expenditure Approach." },
+        { id: 118, type: "MSQ", cat: "Macroeconomics", q: "Induced Investment examples: (Select all)", options: ["Expanding assembly due to 20% demand surge.", "Gov building dam.", "Buying trucks due to projected national income rise.", "Mandatory environmental upgrade."], correct: [0, 2], reason: "Driven by changes in demand/income, not government or legal mandates." },
+        { id: 119, type: "MSQ", cat: "Inflation", q: "Hyperinflation characteristics: (Select all)", options: ["Loss of currency confidence.", "Prices doubling rapidly.", "Massive unbacked money printing.", "Gradual 2% increase."], correct: [0, 1, 2], reason: "Catastrophic collapse usually triggered by government printing vast amounts of money." },
+        { id: 120, type: "MSQ", cat: "Inflation", q: "Actions to control Demand-Pull Inflation: (Select all)", options: ["Increasing CRR.", "Decreasing Government Expenditure.", "Increasing direct taxes.", "Lowering interest rates."], correct: [0, 1, 2], reason: "Restricting bank lending, cutting government spending, and raising taxes curtails demand." }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let userAnswers = {}; // userAnswers[qId] = [selected indices]
+    let submitted = {};   // submitted[qId] = true
+
+    function init() {
+        const grid = document.getElementById('panel-grid');
+        questions.forEach((q, i) => {
+            const btn = document.createElement('div');
+            btn.className = 'panel-num'; 
+            btn.id = 'p-' + i; 
+            btn.innerText = q.id;
+            btn.onclick = () => { currentIdx = i; render(); };
+            grid.appendChild(btn);
+        });
+        render();
+    }
+
+    function applyGlossary(text) {
+        let html = text;
+        for(let term in glossary) {
+            const regex = new RegExp(`\\b${term}\\b`, 'g');
+            html = html.replace(regex, `<span class="term-link">${term}<span class="tooltip">${glossary[term]}</span></span>`);
+        }
+        return html;
+    }
+
+    function render() {
+        const q = questions[currentIdx];
+        
+        document.getElementById('category').innerText = `[${q.type}] - ${q.cat}`;
+        document.getElementById('question').innerHTML = `<strong>${q.id}.</strong> ` + applyGlossary(q.q);
+        
+        const optsDiv = document.getElementById('options'); 
+        optsDiv.innerHTML = '';
+        
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn'; 
+            btn.innerText = String.fromCharCode(65 + i) + ". " + opt; // A. B. C. D. format
+            
+            if (userAnswers[currentIdx]?.includes(i)) {
+                btn.classList.add('selected');
+            }
+            
+            if (submitted[currentIdx]) {
+                btn.disabled = true;
+                if (q.correct.includes(i)) {
+                    btn.classList.add('correct');
+                } else if (userAnswers[currentIdx]?.includes(i)) {
+                    btn.classList.add('wrong');
+                }
+            } else {
+                btn.onclick = () => toggleSelect(i);
+            }
+            optsDiv.appendChild(btn);
+        });
+
+        // Show/Hide buttons based on state
+        const hasSelection = userAnswers[currentIdx] && userAnswers[currentIdx].length > 0;
+        document.getElementById('submit-btn').style.display = (hasSelection && !submitted[currentIdx]) ? 'block' : 'none';
+        document.getElementById('clear-btn').style.display = (!submitted[currentIdx]) ? 'block' : 'none';
+        
+        // Show reason
+        const rb = document.getElementById('reason-box');
+        if (submitted[currentIdx]) {
+            rb.style.display = 'block'; 
+            document.getElementById('reason-text').innerHTML = applyGlossary(q.reason);
+        } else {
+            rb.style.display = 'none';
+        }
+
+        // Update Panel Navigator Visuals
+        document.querySelectorAll('.panel-num').forEach(el => el.classList.remove('active'));
+        document.getElementById('p-'+currentIdx).classList.add('active');
+    }
+
+    function toggleSelect(i) {
+        if (questions[currentIdx].type === 'MSQ') {
+            if (!userAnswers[currentIdx]) userAnswers[currentIdx] = [];
+            const pos = userAnswers[currentIdx].indexOf(i);
+            if (pos > -1) userAnswers[currentIdx].splice(pos, 1);
+            else userAnswers[currentIdx].push(i);
+        } else {
+            userAnswers[currentIdx] = [i]; // Override for MCQ
+        }
+        render();
+    }
+
+    function submitAns() {
+        submitted[currentIdx] = true;
+        const q = questions[currentIdx];
+        
+        // Check if correct
+        const isCorrect = q.correct.sort().toString() === (userAnswers[currentIdx]||[]).sort().toString();
+        
+        if (isCorrect) { 
+            score++; 
+            document.getElementById('score').innerText = score; 
+        }
+        
+        // Colorize right panel RED or GREEN
+        const panelBtn = document.getElementById('p-' + currentIdx);
+        if(isCorrect) {
+            panelBtn.classList.add('correct-panel');
+        } else {
+            panelBtn.classList.add('wrong-panel');
+        }
+        
+        render();
+    }
+
+    function clearResp() { 
+        delete userAnswers[currentIdx]; 
+        render(); 
+    }
+    
+    function move(dir) {
+        let n = currentIdx + dir;
+        if(n >= 0 && n < questions.length) { 
+            currentIdx = n; 
+            render(); 
+        }
+    }
+
+    function toggleTheme() { 
+        document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); 
+    }
+
+    function showResults() {
+        document.getElementById('dashboard').style.display = 'block';
+        const total = questions.length;
+        const perc = ((score/total)*100).toFixed(1);
+        
+        document.getElementById('final-stats').innerText = `${score} / ${total} (${perc}%)`;
+        
+        const topicMap = {};
+        questions.forEach((q, i) => {
+            if(!topicMap[q.cat]) topicMap[q.cat] = { correct: 0, total: 0 };
+            topicMap[q.cat].total++;
+            const ok = submitted[i] && q.correct.sort().toString() === (userAnswers[i]||[]).sort().toString();
+            if(ok) topicMap[q.cat].correct++;
+        });
+
+        let weakHtml = "";
+        for(let cat in topicMap) {
+            const p = topicMap[cat].correct / topicMap[cat].total;
+            let color = 'var(--secondary)';
+            if(p < 0.6) color = 'var(--danger)';
+            else if(p < 0.8) color = '#f39c12'; // Orange
+            
+            weakHtml += `
+                <div class="stat-card" style="border-left-color: ${color}">
+                    <h4 style="margin:0 0 10px 0;">${cat}</h4>
+                    <span style="font-size:1.5rem; font-weight:bold; color:${color}">${(p*100).toFixed(0)}%</span> 
+                    <span style="opacity:0.8; margin-left:10px;">(${topicMap[cat].correct}/${topicMap[cat].total} Correct)</span>
+                </div>`;
+        }
+        document.getElementById('weak-areas').innerHTML = weakHtml;
+    }
+
+    init();
+</script>
+</body>
+</html>
